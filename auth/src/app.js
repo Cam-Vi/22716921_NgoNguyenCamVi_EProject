@@ -38,7 +38,10 @@ class App {
         this.app.get("/profile", authMiddleware, (req, res) => this.authController.getProfile(req, res));
 
         this.app.get("/dashboard", authMiddleware, (req, res) => res.json({ message: "Welcome to dashboard" }));
+        //thêm route deleteTestUsers để xóa user test
+        this.app.delete("/test-users", (req, res) => this.authController.deleteTestUsers(req, res));
     }
+
 
     start() {
         this.server = this.app.listen(3000, () => console.log("Server started on port 3000"));

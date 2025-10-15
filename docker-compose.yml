@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo
+    container_name: mymongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"       # AMQP
+      - "15672:15672"     # Management UI
+    networks:
+      - app-network
+
+  auth:
+    build: ./auth
+    container_name: auth
+    ports:
+      - "3000:3000"
+    environment:
+      JWT_SECRET: secret
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+
+  product:
+    build: ./product
+    container_name: product
+    ports:
+      - "3001:3001"
+    environment:
+      JWT_SECRET: secret
+      RABBITMQ_URL: amqp://rabbitmq:5672
+    depends_on:
+      - mongo
+      - auth
+      - rabbitmq
+    networks:
+      - app-network
+    command: >
+      sh -c "
+        until nc -z rabbitmq 5672; do
+          echo 'Waiting for RabbitMQ...';
+          sleep 2;
+        done;
+        npm start
+      "
+
+  order:
+    build: ./order
+    container_name: order
+    ports:
+      - "3002:3002"
+    environment:
+      JWT_SECRET: secret
+      RABBITMQ_URL: amqp://rabbitmq:5672
+    depends_on:
+      - mongo
+      - auth
+      - product
+      - rabbitmq
+    networks:
+      - app-network
+    command: >
+      sh -c "
+        until nc -z rabbitmq 5672; do
+          echo 'Waiting for RabbitMQ...';
+          sleep 2;
+        done;
+        npm start
+      "
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "3003:3003"
+    environment:
+      JWT_SECRET: secret
+    depends_on:
+      - auth
+      - product
+      - order
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
