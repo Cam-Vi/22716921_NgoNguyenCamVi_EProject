@@ -38,6 +38,8 @@
 ![profile](./public/img_docker/auth/profile.png)
 ### dashboard
 ![dashboard](./public/img_docker/auth/dashboard.png)
+### delete test-user
+![testuser](./public/img_docker/auth/detele_test_user.png)
 ### thêm product
 ![login](./public/img_docker/product/login.png)
 ![createproduct](./public/img_docker/product/create_product.png)
